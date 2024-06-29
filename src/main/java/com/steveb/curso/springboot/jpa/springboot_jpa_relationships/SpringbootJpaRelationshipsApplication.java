@@ -1,11 +1,9 @@
 package com.steveb.curso.springboot.jpa.springboot_jpa_relationships;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
@@ -16,10 +14,14 @@ import org.springframework.transaction.annotation.Transactional;
 import com.steveb.curso.springboot.jpa.springboot_jpa_relationships.entities.Address;
 import com.steveb.curso.springboot.jpa.springboot_jpa_relationships.entities.Client;
 import com.steveb.curso.springboot.jpa.springboot_jpa_relationships.entities.ClientDetails;
+import com.steveb.curso.springboot.jpa.springboot_jpa_relationships.entities.Course;
 import com.steveb.curso.springboot.jpa.springboot_jpa_relationships.entities.Invoice;
+import com.steveb.curso.springboot.jpa.springboot_jpa_relationships.entities.Student;
 import com.steveb.curso.springboot.jpa.springboot_jpa_relationships.repositories.ClientDetailsRepository;
 import com.steveb.curso.springboot.jpa.springboot_jpa_relationships.repositories.ClientRepository;
+import com.steveb.curso.springboot.jpa.springboot_jpa_relationships.repositories.CourseRepository;
 import com.steveb.curso.springboot.jpa.springboot_jpa_relationships.repositories.InvoiceRepository;
+import com.steveb.curso.springboot.jpa.springboot_jpa_relationships.repositories.StudentRepository;
 
 @SpringBootApplication
 public class SpringbootJpaRelationshipsApplication implements CommandLineRunner {
@@ -32,6 +34,12 @@ public class SpringbootJpaRelationshipsApplication implements CommandLineRunner 
 
 	@Autowired
 	private ClientDetailsRepository clientDetailsRepository;
+
+	@Autowired
+	private StudentRepository studentRepository;
+
+	@Autowired
+	private CourseRepository courseRepository;
 
 	public static void main(String[] args) {
 		SpringApplication.run(SpringbootJpaRelationshipsApplication.class, args);
@@ -50,7 +58,123 @@ public class SpringbootJpaRelationshipsApplication implements CommandLineRunner 
 		// oneToOne();
 		// oneToOneFindById();
 		// oneToOneBidireccional();
-		oneToOneBidireccionalFindById();
+		// oneToOneBidireccionalFindById();
+		// manyToMany();
+		// manyToManyFindById();
+		// manyToManyRemoveFind();
+		manyToManyBidireccionalRemove();
+
+	}
+
+	@Transactional
+	public void manyToManyBidireccionalRemove() {
+		Student student1 = studentRepository.findOne(1L).get();
+		Student student2 = studentRepository.findOne(2L).get();
+
+		Course course1 = courseRepository.findOne(1L).get();
+		Course course2 = courseRepository.findOne(2L).get();
+
+		// student1.setCourses(Set.of(course1, course2));
+		// student2.setCourses(Set.of(course1));
+
+		student1.addCourse(course1);
+		student1.addCourse(course2);
+		student2.addCourse(course2);
+
+
+		studentRepository.saveAll(Set.of(student1, student2));
+		System.out.println(student1);
+		System.out.println(student2);
+
+		Optional<Student> studentOptionalDb = studentRepository.findOne(2L);
+		if (studentOptionalDb.isPresent()) {
+			
+			Student studentDb = studentOptionalDb.get();
+			Optional<Course> courseOptionalDb = courseRepository.findOne(2L);
+
+			if (courseOptionalDb.isPresent()) {
+				Course courseDb = courseOptionalDb.get();
+				studentDb.removeCourse(courseDb);
+				
+				studentRepository.save(studentDb);
+				System.out.println(studentDb);
+
+			}
+		}
+	}
+
+	@Transactional
+	public void manyToManyBidireccional() {
+		Student student1 = studentRepository.findOne(1L).get();
+		Student student2 = studentRepository.findOne(2L).get();
+
+		Course course1 = new Course("Curso de Springboot", "STXVXN");
+		Course course2 = new Course("Curso de Java", "STXVXN");
+
+		// student1.setCourses(Set.of(course1, course2));
+		// student2.setCourses(Set.of(course1));
+		student1.addCourse(course1);
+		student1.addCourse(course2);
+		student2.addCourse(course2);
+
+
+		studentRepository.saveAll(Set.of(student1, student2));
+		System.out.println(student1);
+		System.out.println(student2);
+	}
+
+	@Transactional
+	public void manyToManyRemoveFind() {
+		Optional<Student> studenOptionalDb = studentRepository.findOne(1L);
+		if (studenOptionalDb.isPresent()) {
+			Student studentDb = studenOptionalDb.get();
+			System.out.println(studentDb);
+			Optional<Course> courseOptionalDb = courseRepository.findById(2L);
+			if (courseOptionalDb.isPresent()) {
+				Course courseDb = courseOptionalDb.get();
+				studentDb.getCourses().remove(courseDb);
+				studentRepository.save(studentDb);
+				System.out.println(studentDb);
+				
+			}
+		}
+
+
+
+	}
+
+	@Transactional
+	public void manyToManyFindById() {
+
+		Student student1 = studentRepository.findById(1L).get();
+		Student student2 = studentRepository.findById(2L).get();
+
+		Course course1 = courseRepository.findById(1L).get();
+		Course course2 = courseRepository.findById(2L).get();
+
+		student1.setCourses(Set.of(course1, course2));
+		student2.setCourses(Set.of(course1));
+
+		studentRepository.saveAll(Set.of(student1, student2));
+		System.out.println(student1);
+		System.out.println(student2);
+
+	}
+
+	@Transactional
+	public void manyToMany() {
+		Student student1 = studentRepository.findById(1L).get();
+		Student student2 = studentRepository.findById(2L).get();
+
+		Course course1 = new Course("Curso de Springboot", "STXVXN");
+		Course course2 = new Course("Curso de Java", "STXVXN");
+
+		student1.setCourses(Set.of(course1, course2));
+		student2.setCourses(Set.of(course1));
+
+		studentRepository.saveAll(Set.of(student1, student2));
+		System.out.println(student1);
+		System.out.println(student2);
 	}
 
 	@Transactional
